@@ -82,7 +82,7 @@ pub fn language(code: &str) -> u8 {
 /// needed; tofu at worst), on the web only with built-in faces for its scripts (Georgian: craft-fonts'
 /// Noto Sans Georgian). The language picker and the system language skip a language it can't.
 pub fn can_show(code: &str) -> bool {
-    shows(code, cfg!(target_arch = "wasm32"))
+    shows(code, cfg!(all(target_arch = "wasm32", target_os = "unknown")))
 }
 
 /// [`can_show`] in a desktop or (`web`) a web build.

@@ -129,7 +129,7 @@ fn background_blur_ramps_across_the_backdrop() {
     assert_eq!(contrast(&pix, 180), 255);
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 #[test]
 fn bands_match_one_piece() {
     let mut d = Document::new("progressive bands");

@@ -101,7 +101,7 @@ pub(crate) fn backdrop_reach(radius: f64, scale: f64) -> f64 {
 
 /// Render a page region, splitting it into horizontal bands rendered in parallel (desktop).
 pub fn render_view(doc: &Document, page: NodeId, view: &View, opts: &Options) -> Option<Pixmap> {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
     {
         let threads = rayon::current_num_threads().clamp(1, 16) as u32;
         let bands = threads.min(view.height / 96).max(1);
@@ -119,7 +119,7 @@ pub fn render_view(doc: &Document, page: NodeId, view: &View, opts: &Options) ->
 /// read and each keeps only its own rows, so a backdrop never ends at a band's edge. `None` when a
 /// blur reaches past a whole band (every band would render most of the view: render it in one
 /// piece instead).
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 fn render_bands(doc: &Document, page: NodeId, view: &View, opts: &Options, bands: u32) -> Option<Pixmap> {
     use rayon::prelude::*;
     let band_h = view.height.div_ceil(bands.max(1));

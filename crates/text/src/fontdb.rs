@@ -466,7 +466,7 @@ static ON_DEMAND: AtomicBool = AtomicBool::new(false);
 /// Done once per process: concurrent callers wait for the one scan.
 static SCANNED: OnceLock<()> = OnceLock::new();
 /// Directory walks done (at most one).
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 static SCANS: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
 
 /// The process-wide font database (embedded fonts loaded on first use; system fonts indexed first
@@ -916,7 +916,7 @@ pub fn family_styles(family: &str) -> Vec<String> {
 /// The directory walk runs without holding the database lock; results are merged in one short write.
 pub fn scan_system_fonts() {
     SCANNED.get_or_init(|| {
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
         if !system_fonts_opted_out() {
             SCANS.fetch_add(1, Ordering::Relaxed);
             let mut found: BTreeMap<String, (String, Vec<Pending>)> = BTreeMap::new();
@@ -940,7 +940,7 @@ pub fn scan_system_fonts() {
 /// once per process): the families that were unknown before, and every family that gained faces.
 /// Before the first scan this is that scan; a no-op on the web or with `FIGCRAFT_NO_SYSTEM_FONTS`.
 pub fn rescan_system_fonts() -> Rescan {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
     if !system_fonts_opted_out() {
         if SCANNED.get().is_none() {
             let before: std::collections::BTreeSet<String> =
@@ -986,7 +986,7 @@ pub fn load_font_bytes(bytes: Vec<u8>) -> Vec<String> {
 }
 
 /// `FIGCRAFT_NO_SYSTEM_FONTS` is set (and not `0`): renders use only the embedded fonts.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 fn system_fonts_opted_out() -> bool {
     std::env::var_os("FIGCRAFT_NO_SYSTEM_FONTS").is_some_and(|v| !v.is_empty() && v != "0")
 }
@@ -994,7 +994,7 @@ fn system_fonts_opted_out() -> bool {
 /// Every font text can use is known: the system fonts were indexed, or there are none to index
 /// (opted out, or the web). Until then a family the scan would find counts as missing.
 pub fn installed_fonts_known() -> bool {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
     if !system_fonts_opted_out() {
         return system_fonts_scanned();
     }

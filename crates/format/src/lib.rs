@@ -709,7 +709,7 @@ fn read_branches<R: Read + Seek>(z: &mut zip::ZipArchive<R>, images: &BTreeMap<S
 }
 
 /// Save atomically: write a staging file next to `path`, then rename over it.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 pub fn save_file(doc: &Document, path: &std::path::Path, thumbnail_png: Option<&[u8]>) -> Result<(), FormatError> {
     let bytes = save_bytes(doc, thumbnail_png)?;
     write_file_atomic(path, &bytes).map_err(|e| FormatError::Io(format!("{}: {e}", path.display())))
@@ -724,7 +724,7 @@ pub fn save_file(doc: &Document, path: &std::path::Path, thumbnail_png: Option<&
 /// `path` is replaced only on success. The rename replaces an existing destination on every
 /// platform (`std::fs::rename` uses `MoveFileEx` with `MOVEFILE_REPLACE_EXISTING` on Windows).
 /// (No `sync_all` yet: nothing around here promises durability across a power cut.)
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 pub fn write_file_atomic(path: &std::path::Path, bytes: &[u8]) -> std::io::Result<()> {
     use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
 
@@ -757,7 +757,7 @@ pub fn write_file_atomic(path: &std::path::Path, bytes: &[u8]) -> std::io::Resul
     Err(std::io::Error::new(std::io::ErrorKind::AlreadyExists, "no free staging name next to the file"))
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 pub fn load_file(path: &std::path::Path) -> Result<(Document, Vec<String>), FormatError> {
     let bytes = std::fs::read(path).map_err(|e| FormatError::Io(format!("{}: {e}", path.display())))?;
     load_bytes(&bytes)

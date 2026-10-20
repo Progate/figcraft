@@ -32,7 +32,7 @@ impl Shown {
 /// placed image or SVG, a file that was open already, or Clear recent): look for missing fonts in
 /// it once that can be told ([`show`]). Not in the browser, which has only its built-in fonts.
 pub fn check_later(app: &mut FigApp, command: &str, result: Option<&Value>) {
-    if !cfg!(target_arch = "wasm32")
+    if !cfg!(all(target_arch = "wasm32", target_os = "unknown"))
         && matches!(command, "file.open" | "file.openRecent" | "file.import")
         && result.is_some_and(|r| r.get("summary").is_some())
         && let Ok(ds) = app.session.ds()

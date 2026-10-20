@@ -2713,7 +2713,7 @@ fn draw(p: &mut Presenter, painter: &egui::Painter, ctx: &egui::Context, l: &Lay
             let e = a.easing.eval(raw);
             let from_place = a.from_doc.world_bounds(a.from_frame).map(|fb| Place::centered(fb, l.screen.center(), l.scale));
             if matches!(a.transition, Transition::SmartAnimate) {
-                #[cfg(not(target_arch = "wasm32"))]
+                #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
                 let t0 = std::time::Instant::now();
                 let tmp = smart_interpolate(&a.from_doc, a.from_frame, &l.disp, p.current, e);
                 let bounds = figcraft_render::export_bounds(&tmp, p.current);
@@ -2735,7 +2735,7 @@ fn draw(p: &mut Presenter, painter: &egui::Painter, ctx: &egui::Context, l: &Lay
                     painter.with_clip_rect(l.screen).image(tex.id(), l.place.rect(b), uv, Color32::WHITE);
                     drawn = true;
                 }
-                #[cfg(not(target_arch = "wasm32"))]
+                #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
                 {
                     p.render_ms = t0.elapsed().as_secs_f64() * 1000.0;
                 }

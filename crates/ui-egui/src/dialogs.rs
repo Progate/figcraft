@@ -223,10 +223,10 @@ pub fn show(app: &mut FigApp, ctx: &Context) {
                 crate::widgets::label(ui, tr("Your system asks for reduced motion: animations stay off."), t.text_secondary);
             }
             // The browser has no files to save to.
-            if !cfg!(target_arch = "wasm32") && crate::widgets::checkbox(ui, prefs.auto_save, tr("Save files automatically")) {
+            if !cfg!(all(target_arch = "wasm32", target_os = "unknown")) && crate::widgets::checkbox(ui, prefs.auto_save, tr("Save files automatically")) {
                 toggles.push("pref.autoSave");
             }
-            if !cfg!(target_arch = "wasm32") && crate::widgets::checkbox(ui, prefs.start_on_home, tr("Start on the Home screen")) {
+            if !cfg!(all(target_arch = "wasm32", target_os = "unknown")) && crate::widgets::checkbox(ui, prefs.start_on_home, tr("Start on the Home screen")) {
                 toggles.push("pref.startOnHome");
             }
             for c in toggles {
@@ -486,7 +486,7 @@ pub(crate) fn batch_rename_params(b: &BatchRenameUi) -> serde_json::Value {
 /// the row only says so.
 fn interface_size(app: &mut FigApp, ui: &mut egui::Ui, chosen: f64) {
     let t = Tokens::get(ui.ctx());
-    if cfg!(target_arch = "wasm32") {
+    if cfg!(all(target_arch = "wasm32", target_os = "unknown")) {
         ui.label(tr("Interface size"));
         crate::widgets::label(ui, tr("Use your browser's zoom to change the interface size."), t.text_secondary);
         return;

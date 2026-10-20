@@ -1378,7 +1378,7 @@ impl FigApp {
         // back, sets it. The browser keeps its own zoom.
         if ctx.viewport_id() == egui::ViewportId::ROOT {
             let window_px = ctx.content_rect().size() * ctx.pixels_per_point();
-            let size = if cfg!(target_arch = "wasm32") { 1.0 } else { self.session.prefs.ui_scale };
+            let size = if cfg!(all(target_arch = "wasm32", target_os = "unknown")) { 1.0 } else { self.session.prefs.ui_scale };
             let plan = ui_scale::plan(size, ctx.native_pixels_per_point(), Some((window_px.x, window_px.y)));
             ctx.set_zoom_factor(plan.zoom);
             self.ui.ui_scale = plan;
@@ -1427,7 +1427,7 @@ impl FigApp {
         let now = ctx.input(|i| i.time);
         let mut failed = self.auto_save_done();
         // The browser has no files to save to.
-        let on = !cfg!(target_arch = "wasm32") && self.session.prefs.auto_save;
+        let on = !cfg!(all(target_arch = "wasm32", target_os = "unknown")) && self.session.prefs.auto_save;
         let saving = &self.ui.auto_saving;
         let due = |d: &&figcraft_engine::DocState| {
             d.path.is_some() && d.branch_of.is_none() && d.preview.is_none() && d.is_dirty() && !saving.iter().any(|(uid, _)| *uid == d.uid)
@@ -1495,7 +1495,7 @@ impl FigApp {
 
     /// Draw the whole UI: the main window (the other windows draw themselves).
     pub fn ui(&mut self, ui: &mut egui::Ui) {
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
         let t0 = std::time::Instant::now();
         let ctx = ui.ctx().clone();
         self.ui_context = Some(ctx.clone());
@@ -1531,7 +1531,7 @@ impl FigApp {
         if std::mem::take(&mut self.session.plugins.unsaved) | std::mem::take(&mut self.session.live.unsaved) {
             self.services.save_prefs(&self.session.prefs);
         }
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
         {
             self.ui.frame_ms = t0.elapsed().as_secs_f64() * 1000.0;
         }
@@ -1823,8 +1823,14 @@ pub(crate) fn dropped_bytes(f: &egui::DroppedFileHandle, name: &str) -> ReadFutu
     Box::pin(std::future::ready(f.bytes().map_err(|_| unreadable(name))))
 }
 
+/// Reads the dropped file by its real path (BrowserOS gives dropped files real paths).
+#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+pub(crate) fn dropped_bytes(f: &egui::DroppedFileHandle, name: &str) -> ReadFuture {
+    Box::pin(std::future::ready(std::fs::read(f.path()).map_err(|_| unreadable(name))))
+}
+
 /// Reads the contents of dropped file `name`; the browser hands them over asynchronously.
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 pub(crate) fn dropped_bytes(f: &egui::DroppedFileHandle, name: &str) -> ReadFuture {
     let (f, name) = (f.clone(), name.to_string());
     Box::pin(async move {

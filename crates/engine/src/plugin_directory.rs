@@ -152,7 +152,7 @@ fn install(s: &mut Session, p: &Value) -> Result<Value> {
 #[allow(clippy::disallowed_methods)]
 fn save(s: &Session, m: &mut Manifest, b: &Bundle) -> std::result::Result<Option<String>, String> {
     let Some(root) = s.plugins.install_dir.clone() else { return Ok(None) };
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
     {
         use std::fs;
         let hash = sha256_hex(m.id.as_bytes());
@@ -184,7 +184,7 @@ fn save(s: &Session, m: &mut Manifest, b: &Bundle) -> std::result::Result<Option
         }
         Ok(Some(folder.join(MANIFEST_FILE).to_string_lossy().into_owned()))
     }
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
     {
         let _ = (root, m, b);
         Ok(None)
@@ -194,7 +194,7 @@ fn save(s: &Session, m: &mut Manifest, b: &Bundle) -> std::result::Result<Option
 /// Delete the folder of a plugin installed from a directory (only one inside the install folder).
 #[allow(clippy::disallowed_methods)]
 pub(crate) fn delete_installed(s: &Session, p: &InstalledPlugin) {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
     if let (Some(_), Some(path), Some(root)) = (&p.source, &p.path, &s.plugins.install_dir)
         && let Some(folder) = std::path::Path::new(path).parent()
         && folder.parent() == Some(root.as_path())
@@ -202,13 +202,13 @@ pub(crate) fn delete_installed(s: &Session, p: &InstalledPlugin) {
     {
         log::warn!("plugins: couldn't delete {}: {e}", folder.display());
     }
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
     let _ = (s, p);
 }
 
 /// The bundle of the plugin folder (or manifest) at `path`: its manifest as written, its module and
 /// the files in its `assets` folder.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 fn bundle_from_disk(cmd: &str, path: &str) -> Result<Bundle> {
     use crate::plugins::{module_file, read_file};
     let mut file = std::path::PathBuf::from(crate::library::absolute_path(path.trim()));
@@ -239,7 +239,7 @@ fn bundle_from_disk(cmd: &str, path: &str) -> Result<Bundle> {
     Ok(Bundle { manifest: text, wasm, assets })
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 fn bundle_from_disk(cmd: &str, _path: &str) -> Result<Bundle> {
     Err(bad(cmd, "there are no files in the browser: publish an installed plugin with `plugin`"))
 }

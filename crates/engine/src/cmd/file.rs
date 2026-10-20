@@ -447,12 +447,12 @@ pub(crate) fn recovered(path: &str) -> Result<DocState> {
     Ok(DocState::new(loaded.doc, None).with_versions(loaded.versions).with_branches(loaded.branches).unsaved())
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 fn read(path: &str) -> Result<Vec<u8>> {
     crate::file_access::read(path)
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 fn read(path: &str) -> Result<Vec<u8>> {
     Err(EngineError::Other(format!("{path}: no file system in the browser")))
 }
@@ -465,12 +465,12 @@ pub(crate) fn read_capped(path: &str, max: u64) -> Result<Vec<u8>> {
 /// Write `bytes` to `path` through a uniquely named, exclusively created staging file and one
 /// atomic rename (see [`figcraft_format::write_file_atomic`]): a failed or interrupted write never
 /// truncates `path`, and no file or symlink at a staging name is ever written through.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 pub(crate) fn write(path: &str, bytes: &[u8]) -> Result<()> {
     crate::file_access::write(path, bytes)
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 pub(crate) fn write(path: &str, _bytes: &[u8]) -> Result<()> {
     Err(EngineError::Other(format!("{path}: no file system in the browser")))
 }
@@ -574,12 +574,12 @@ fn link_instances(doc: &mut Document) {
 }
 
 /// Largest image file read for a REST API file JSON import.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 const MAX_IMAGE_FILE: u64 = 256 * 1024 * 1024;
 
 /// Image bytes for a REST API file JSON's `imageRef`: `images/<imageRef>[.png|.jpg|…]` next to
 /// the file.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 fn rest_images(path: &str) -> impl Fn(&str) -> Option<Vec<u8>> {
     let dir = std::path::Path::new(path).parent().map(|d| d.join("images"));
     move |r: &str| {
@@ -594,18 +594,18 @@ fn rest_images(path: &str) -> impl Fn(&str) -> Option<Vec<u8>> {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 fn rest_images(_path: &str) -> impl Fn(&str) -> Option<Vec<u8>> {
     figcraft_format::rest::no_images
 }
 
 /// Largest variables JSON read from disk.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 const MAX_VARIABLES_FILE: u64 = 256 * 1024 * 1024;
 
 /// A local variables JSON next to a REST API file JSON: `<name>.variables.json`, else
 /// `variables.json`.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 fn sibling_variables(path: &str) -> Option<Value> {
     if ext(path) != "json" {
         return None;
@@ -618,7 +618,7 @@ fn sibling_variables(path: &str) -> Option<Value> {
     })
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 fn sibling_variables(_path: &str) -> Option<Value> {
     None
 }

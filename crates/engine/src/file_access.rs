@@ -110,7 +110,7 @@ fn inside_as_far_as_it_exists(path: &Path, roots: &[PathBuf]) -> bool {
 
 /// Whether `path` lies in the app's own folder `folder`, both resolved (links and `..` followed);
 /// false when either can't be resolved.
-#[cfg_attr(target_arch = "wasm32", allow(dead_code))]
+#[cfg_attr(all(target_arch = "wasm32", target_os = "unknown"), allow(dead_code))]
 pub(crate) fn within_app_folder(path: &Path, folder: &Path) -> bool {
     matches!((std::fs::canonicalize(path), std::fs::canonicalize(folder)), (Ok(p), Ok(f)) if p.starts_with(&f))
 }
@@ -190,7 +190,7 @@ pub fn confined<R>(roots: Option<&Arc<Roots>>, f: impl FnOnce() -> R) -> R {
 
 /// Run `f` unconfined: only for the app's own files, never for a path a command was given.
 // Only plugins read from disk use it, and the browser has no disk.
-#[cfg_attr(target_arch = "wasm32", allow(dead_code))]
+#[cfg_attr(all(target_arch = "wasm32", target_os = "unknown"), allow(dead_code))]
 pub(crate) fn app_owned<R>(f: impl FnOnce() -> R) -> R {
     scoped(None, f)
 }
@@ -284,12 +284,12 @@ pub fn write(path: impl AsRef<Path>, bytes: &[u8]) -> Result<()> {
     write_atomic(&allow(path, Access::Write)?, bytes).map_err(io(path))
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 fn write_atomic(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
     figcraft_format::write_file_atomic(path, bytes)
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 fn write_atomic(_: &Path, _: &[u8]) -> std::io::Result<()> {
     Err(std::io::Error::new(std::io::ErrorKind::Unsupported, "no file system in the browser"))
 }

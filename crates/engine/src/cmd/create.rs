@@ -362,12 +362,12 @@ fn free_spot(s: &Session, w: f64, h: f64) -> Result<(f64, f64)> {
     })
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 fn read_path(path: &str) -> Result<Vec<u8>> {
     crate::file_access::read(path)
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 fn read_path(path: &str) -> Result<Vec<u8>> {
     Err(crate::EngineError::Other(format!("{path}: files can't be read in the browser")))
 }

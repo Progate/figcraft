@@ -282,7 +282,7 @@ fn retained_previews_match_full_ones() {
     assert_eq!(work, crate::Work::Full);
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 #[test]
 fn bands_match_one_piece_previews() {
     let (d, p) = cards();

@@ -363,7 +363,7 @@ fn run(job: Job) -> Reply {
 
 /// Reads files on a thread of its own (on the web, where there are no files to read, in place).
 struct Loader {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
     thread: Option<(std::sync::mpsc::Sender<Job>, std::sync::mpsc::Receiver<Reply>)>,
     /// Replies read in place.
     done: Vec<Reply>,
@@ -371,7 +371,7 @@ struct Loader {
 
 impl Loader {
     fn new(ctx: &egui::Context) -> Loader {
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
         {
             let (tx, jobs) = std::sync::mpsc::channel::<Job>();
             let (done_tx, rx) = std::sync::mpsc::channel::<Reply>();
@@ -396,7 +396,7 @@ impl Loader {
             };
             Loader { thread, done: Vec::new() }
         }
-        #[cfg(target_arch = "wasm32")]
+        #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
         {
             let _ = ctx;
             Loader { done: Vec::new() }
@@ -404,7 +404,7 @@ impl Loader {
     }
 
     fn submit(&mut self, job: Job) {
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
         let job = match &self.thread {
             Some((tx, _)) => match tx.send(job) {
                 Ok(()) => return,
@@ -417,7 +417,7 @@ impl Loader {
 
     fn poll(&mut self) -> Vec<Reply> {
         let out = std::mem::take(&mut self.done);
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
         let out = match &self.thread {
             Some((_, rx)) => out.into_iter().chain(rx.try_iter()).collect(),
             None => out,
@@ -687,7 +687,7 @@ fn interact(ui: &Ui, resp: &Response, recents: &mut Recents, file: &Shown) -> Op
             action = Some(Action::Open(file.path.clone()));
             ui.close();
         }
-        if cfg!(not(target_arch = "wasm32")) && file.stat.is_some_and(|s| s.exists) && crate::right::menu_item(ui, reveal_label(), "") {
+        if cfg!(not(all(target_arch = "wasm32", target_os = "unknown"))) && file.stat.is_some_and(|s| s.exists) && crate::right::menu_item(ui, reveal_label(), "") {
             action = Some(Action::Reveal(file.path.clone()));
             ui.close();
         }

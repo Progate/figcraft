@@ -30,7 +30,7 @@ const MAX_CACHED: usize = 64;
 const MAX_ASSETS: usize = 100_000;
 /// Why library edits are refused.
 pub const READ_ONLY: &str = "library components, styles and variables can't be edited in this file: edit them in their library file and publish it";
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 const NO_FILES: &str = "libraries need the desktop app: the browser has no file system";
 
 fn disabled(cmd: &str, msg: impl Into<String>) -> EngineError {
@@ -529,17 +529,17 @@ impl Cache {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 fn now() -> Option<std::time::SystemTime> {
     Some(std::time::SystemTime::now())
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 fn now() -> Option<std::time::SystemTime> {
     None
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 fn stat(path: &str) -> std::result::Result<Stamp, String> {
     let m = crate::file_access::metadata(path).map_err(|e| e.to_string())?;
     if !m.is_file() {
@@ -548,12 +548,12 @@ fn stat(path: &str) -> std::result::Result<Stamp, String> {
     Ok(Stamp { len: m.len(), modified: m.modified().ok() })
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 fn stat(_path: &str) -> std::result::Result<Stamp, String> {
     Err(NO_FILES.into())
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 fn read_file(path: &str) -> std::result::Result<PublishedLibrary, String> {
     let f = crate::file_access::open(path).map_err(|e| e.to_string())?;
     match figcraft_format::read_library(std::io::BufReader::new(f)) {
@@ -563,14 +563,14 @@ fn read_file(path: &str) -> std::result::Result<PublishedLibrary, String> {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 fn read_file(_path: &str) -> std::result::Result<PublishedLibrary, String> {
     Err(NO_FILES.into())
 }
 
 /// Turn `path` into an absolute path (library links outlive the working directory).
 pub fn absolute_path(path: &str) -> String {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
     if let Ok(p) = std::path::absolute(path) {
         return p.to_string_lossy().into_owned();
     }

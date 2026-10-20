@@ -179,7 +179,7 @@ fn guarded(retained: &mut Retained, f: impl FnOnce(&mut Retained) -> Option<Done
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 pub struct Worker {
     tx: std::sync::mpsc::Sender<(u64, Job)>,
     rx: std::sync::mpsc::Receiver<Done>,
@@ -190,7 +190,7 @@ pub struct Worker {
     finished: Arc<std::sync::atomic::AtomicU64>,
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 impl Worker {
     pub fn new(ctx: egui::Context) -> Self {
         let (tx, jobs) = std::sync::mpsc::channel::<(u64, Job)>();
@@ -265,7 +265,7 @@ pub struct Inline {
     renders: Renders,
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 pub type Worker = Inline;
 
 impl Inline {

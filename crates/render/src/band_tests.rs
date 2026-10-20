@@ -1,6 +1,6 @@
 //! Rendering in parallel bands matches rendering in one piece: effects that look past a band's
 //! rows (inner shadows, background blurs) must not draw the band's edges into the picture.
-#![cfg(not(target_arch = "wasm32"))]
+#![cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 
 use std::sync::Arc;
 

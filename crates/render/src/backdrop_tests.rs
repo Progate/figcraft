@@ -270,7 +270,7 @@ fn glass_and_backdrop_blur_survive_bands_and_partial_renders() {
     let p = d.first_page().unwrap();
     let v = View { origin: (-20.0, -20.0), scale: 1.0, width: 280, height: 400 };
     let one = render_view_single(&d, p, &v, &Options::default()).unwrap();
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
     {
         let banded = render_bands(&d, p, &v, &Options::default(), 4).unwrap();
         assert!(max_diff(&one, &banded) <= 2);

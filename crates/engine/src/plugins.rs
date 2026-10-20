@@ -249,7 +249,7 @@ pub(crate) fn installed<'a>(s: &'a Session, cmd: &str, id: &str) -> Result<&'a I
 }
 
 /// Read a file of at most `max` bytes.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 pub(crate) fn read_file(path: &std::path::Path, max: usize) -> Result<Vec<u8>> {
     let meta = crate::file_access::metadata(path)?;
     if !meta.is_file() || meta.len() > max as u64 {
@@ -260,7 +260,7 @@ pub(crate) fn read_file(path: &std::path::Path, max: usize) -> Result<Vec<u8>> {
 
 /// The manifest at `path` (the file, or the folder holding `figcraft-plugin.json`), its absolute
 /// path and its module.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 fn load_from_disk(cmd: &str, path: &str) -> Result<(Manifest, String, Vec<u8>)> {
     let mut file = std::path::PathBuf::from(crate::library::absolute_path(path.trim()));
     if crate::file_access::is_dir(&file) {
@@ -273,13 +273,13 @@ fn load_from_disk(cmd: &str, path: &str) -> Result<(Manifest, String, Vec<u8>)> 
     Ok((manifest, file.to_string_lossy().into_owned(), wasm))
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 fn load_from_disk(cmd: &str, _path: &str) -> Result<(Manifest, String, Vec<u8>)> {
     Err(bad(cmd, "there are no files in the browser: pass `manifest` and `wasm` (base64)"))
 }
 
 /// The module a manifest at `manifest_file` names.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 pub(crate) fn module_file(manifest_file: &std::path::Path, m: &Manifest) -> Result<Vec<u8>> {
     let dir = manifest_file.parent().unwrap_or(std::path::Path::new("."));
     read_file(&dir.join(&m.main), Limits::default().module_bytes)
@@ -297,7 +297,7 @@ pub(crate) fn module_of(s: &Session, p: &InstalledPlugin) -> Result<Arc<Vec<u8>>
     module_from_disk(s, p, path)
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 fn module_from_disk(s: &Session, p: &InstalledPlugin, path: &str) -> Result<Arc<Vec<u8>>> {
     let file = std::path::Path::new(path);
     let read = || module_file(file, &p.manifest).map(Arc::new);
@@ -307,7 +307,7 @@ fn module_from_disk(s: &Session, p: &InstalledPlugin, path: &str) -> Result<Arc<
     if own { crate::file_access::app_owned(read) } else { read() }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 fn module_from_disk(_: &Session, _: &InstalledPlugin, path: &str) -> Result<Arc<Vec<u8>>> {
     Err(EngineError::Other(format!("{path}: there are no files in the browser")))
 }
