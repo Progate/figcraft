@@ -756,7 +756,7 @@ fn system_font_dirs() -> Vec<std::path::PathBuf> {
             v.push(std::path::PathBuf::from(l).join("Microsoft\\Windows\\Fonts"));
         }
     }
-    #[cfg(all(unix, not(target_os = "macos")))]
+    #[cfg(all(any(unix, target_os = "wasi"), not(target_os = "macos")))]
     {
         v.push("/usr/share/fonts".into());
         v.push("/usr/local/share/fonts".into());
@@ -776,7 +776,7 @@ fn font_asset_dirs(store: &std::path::Path) -> Vec<std::path::PathBuf> {
 
 // Fontconfig's default configuration uses $XDG_DATA_HOME/fonts for user fonts.
 // Ignore relative XDG paths, as required by the XDG Base Directory Specification.
-#[cfg(all(unix, not(target_os = "macos")))]
+#[cfg(all(any(unix, target_os = "wasi"), not(target_os = "macos")))]
 fn unix_user_font_dirs(home: Option<std::ffi::OsString>, data_home: Option<std::ffi::OsString>) -> Vec<std::path::PathBuf> {
     let home = home.map(std::path::PathBuf::from);
     let data = data_home.map(std::path::PathBuf::from).filter(|p| p.is_absolute()).or_else(|| home.as_ref().map(|h| h.join(".local/share")));

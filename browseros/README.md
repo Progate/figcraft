@@ -13,6 +13,9 @@ This branch builds FigCraft for [BrowserOS](https://github.com/Progate/packages/
   through `[patch.crates-io]`). Upstream's wasm thread parker panics as soon as a lock is contended unless the
   nightly feature is on; the std of `wasm32-wasip1-threads` implements park / unpark with
   `memory.atomic.wait32` / `notify`, so `thread_parker/wasi.rs` waits on that. The rest is crates.io's 0.9.12.
+- **System font folders include the Linux locations on WASI** (`crates/text/src/fontdb.rs`): `target_family`
+  on `wasm32-wasip1` is `wasm`, not `unix`, so `cfg(unix)` hid `/usr/share/fonts` and friends. The CJK fallback
+  faces the UI installs come from the system scan, so Japanese text needs this.
 - **Dropped files are read by path on WASI** (`crates/ui-egui/src/lib.rs::dropped_bytes`). egui's `DroppedFile`
   trait only offers `bytes_async` on wasm32; on BrowserOS a dropped file has a real path, so `std::fs::read` is
   enough.
